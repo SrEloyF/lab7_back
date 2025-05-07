@@ -16,16 +16,16 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
 // Crea una instancia de la aplicación Express
-dconst app = express();
+const app = express();
 
 // Define los orígenes permitidos para CORS
-deconst allowedOrigins = [
+const allowedOrigins = [
   "http://localhost:4000",              // Frontend en desarrollo
   "https://lab7-front.onrender.com"     // Frontend en producción
 ];
 
 // Configura las opciones de CORS
-deconst corsOptions = {
+const corsOptions = {
   origin: function(origin, callback) {
     // Permite solicitudes sin origen (por ejemplo Postman o curl)
     if (!origin) return callback(null, true);
