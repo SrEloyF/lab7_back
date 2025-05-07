@@ -40,7 +40,7 @@ const corsOptions = {
 };
 
 // Middleware: registra cada petición entrante en consola
-dapp.use((req, res, next) => {
+app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
