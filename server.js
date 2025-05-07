@@ -1,7 +1,7 @@
 // Importa Express para crear la aplicación web
 import express from "express";
-import dotenv from 'dotenv';
-dotenv.config();
+// Importa dotenv si fuera necesario, pero no lo usaremos en este caso
+// import dotenv from 'dotenv'; dotenv.config();
 
 // Importa CORS para permitir solicitudes desde otros dominios (por ejemplo, desde el frontend)
 import cors from "cors";
@@ -16,16 +16,31 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
 // Crea una instancia de la aplicación Express
-const app = express();
+dconst app = express();
 
-// Configura las opciones de CORS para permitir acceso desde el frontend en el puerto 8080
-const corsOptions = {
-  origin: "https://lab7-front.onrender.com", // Permite solicitudes desde el frontend en localhost:8080
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true,
+// Define los orígenes permitidos para CORS
+deconst allowedOrigins = [
+  "http://localhost:4000",              // Frontend en desarrollo
+  "https://lab7-front.onrender.com"     // Frontend en producción
+];
+
+// Configura las opciones de CORS
+deconst corsOptions = {
+  origin: function(origin, callback) {
+    // Permite solicitudes sin origen (por ejemplo Postman o curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Si el origen no está en la lista, rechaza la petición
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  credentials: true  // Habilita envío de cookies y cabeceras de autenticación
 };
 
-app.use((req, res, next) => {
+// Middleware: registra cada petición entrante en consola
+dapp.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
