@@ -5,14 +5,37 @@ import dbConfig from "../config/db.config.js";
 // Importamos los modelos de usuario y rol
 import userModel from "./user.model.js"; 
 import roleModel from "./role.model.js";
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-// Creamos una instancia de Sequelize con los parámetros de configuración
-const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-  host: dbConfig.HOST, // Dirección del servidor de la base de datos
-  dialect: dbConfig.dialect, // Tipo de base de datos (por ejemplo, 'mysql', 'postgres')
-  pool: dbConfig.pool, // Configuración del pool de conexiones
-  port: dbConfig.PORT, // Puerto en el que se conecta a la base de datos
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const configPath = path.resolve(__dirname, '../config/config.json');
+const { development: config } = await import(`file://${configPath}`, { assert: { type: "json" } }).then(module => module.default);
+
+if (config.dialect === 'postgres' && typeof config.dialectOptions?.ssl === 'boolean') {
+  config.dialectOptions = {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  };
+}
+
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  {
+    host: config.host,
+    port: config.port,
+    dialect: config.dialect,
+    dialectOptions: config.dialectOptions,
+    pool: config.pool,
+  }
+);
+
 
 // Creamos un objeto para almacenar los modelos y la instancia de Sequelize
 const db = {};
