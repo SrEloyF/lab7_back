@@ -1,28 +1,31 @@
 // Importamos Sequelize, que es el ORM que utilizaremos para interactuar con la base de datos
 import Sequelize from "sequelize";
-// Importamos la configuración de la base de datos desde un archivo externo
-import dbConfig from "../config/db.config.js";
 // Importamos los modelos de usuario y rol
 import userModel from "./user.model.js"; 
 import roleModel from "./role.model.js";
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Leemos y parseamos el archivo config.json manualmente
 const configPath = path.resolve(__dirname, '../config/config.json');
-const { development: config } = await import(`file://${configPath}`, { assert: { type: "json" } }).then(module => module.default);
+const configFile = fs.readFileSync(configPath, 'utf-8');
+const config = JSON.parse(configFile).development; // Usa "production" si estás en producción
 
-if (config.dialect === 'postgres' && typeof config.dialectOptions?.ssl === 'boolean') {
+// Ajustamos las opciones de SSL para PostgreSQL si es necesario
+if (config.dialect === 'postgres') {
   config.dialectOptions = {
     ssl: {
       require: true,
-      rejectUnauthorized: false,
+      rejectUnauthorized: false, // Render exige esto si no se usa CA personalizada
     },
   };
 }
 
+// Creamos la instancia de Sequelize con la configuración cargada
 const sequelize = new Sequelize(
   config.database,
   config.username,
@@ -36,35 +39,31 @@ const sequelize = new Sequelize(
   }
 );
 
-
 // Creamos un objeto para almacenar los modelos y la instancia de Sequelize
 const db = {};
 
-// Asignamos Sequelize y la instancia sequelize al objeto db
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Inicializamos los modelos de usuario y rol, pasándoles la instancia de Sequelize y el objeto Sequelize
 db.user = userModel(sequelize, Sequelize);
 db.role = roleModel(sequelize, Sequelize);
 
-// Definimos una relación de muchos a muchos entre roles y usuarios
+// Relaciones muchos a muchos entre usuarios y roles
 db.role.belongsToMany(db.user, {
-  through: "user_roles", // Nombre de la tabla intermedia que almacena las relaciones
-  foreignKey: "roleId", // Clave foránea en la tabla intermedia que referencia a roles
-  otherKey: "userId", // Clave foránea en la tabla intermedia que referencia a usuarios
+  through: "user_roles",
+  foreignKey: "roleId",
+  otherKey: "userId",
 });
 
-// Definimos la relación inversa de muchos a muchos entre usuarios y roles
 db.user.belongsToMany(db.role, {
-  through: "user_roles", // Nombre de la tabla intermedia
-  foreignKey: "userId", // Clave foránea que referencia a usuarios
-  otherKey: "roleId", // Clave foránea que referencia a roles
-  as: "roles", // Alias para acceder a los roles de un usuario
+  through: "user_roles",
+  foreignKey: "userId",
+  otherKey: "roleId",
+  as: "roles",
 });
 
-// Definimos una constante con los posibles roles que se pueden asignar
+// Lista de roles válidos
 db.ROLES = ["user", "admin", "moderator"];
 
-// Exportamos el objeto db para que pueda ser utilizado en otras partes de la aplicación
+// Exportamos el objeto db
 export default db;
