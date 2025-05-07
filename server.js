@@ -20,7 +20,7 @@ const app = express();
 
 // Configura las opciones de CORS para permitir acceso desde el frontend en el puerto 8080
 const corsOptions = {
-  origin: "http://localhost:4000", // Permite solicitudes desde el frontend en localhost:8080
+  origin: "https://lab7-front.onrender.com", // Permite solicitudes desde el frontend en localhost:8080
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
